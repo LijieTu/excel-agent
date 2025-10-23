@@ -114,141 +114,22 @@ class VoiceHandler:
     def create_voice_input_ui(self) -> Optional[str]:
         """
         Create voice input UI components for Streamlit.
-        
+
         Returns:
             Transcribed text if successful, None otherwise
         """
-        st.subheader("🎤 Voice Input")
-        
-        # Method 1: File Upload
-        st.write("**Method 1: Upload Audio File**")
-        audio_file = st.file_uploader(
-            "Choose an audio file",
-            type=['wav', 'mp3', 'm4a', 'webm'],
-            help=f"Supported formats: {', '.join(self.get_supported_formats())}. Max size: 25MB"
+        # Simple text area for transcript input (no complex HTML component)
+        st.write("**📝 Voice Transcript:**")
+        transcript_input = st.text_area(
+            "Paste your voice transcript here:",
+            height=100,
+            placeholder="After recording, paste your transcript here to analyze it...",
+            key="voice_transcript_simple"
         )
-        
-        if audio_file is not None:
-            if self.validate_audio_file(audio_file):
-                if st.button("🎵 Transcribe Audio"):
-                    with st.spinner("Transcribing audio..."):
-                        transcript = self.process_audio_file(audio_file)
-                        if transcript and not transcript.startswith("Error"):
-                            st.success("✅ Transcription successful!")
-                            return transcript
-                        else:
-                            st.error(f"❌ {transcript}")
-            else:
-                st.error("❌ Invalid audio file. Please check format and size.")
-        
-        # Method 2: Browser Speech Recognition (JavaScript)
-        st.write("**Method 2: Real-time Voice Input**")
-        st.write("Click the microphone button below to start recording:")
-        
-        # Create HTML/JavaScript for Web Speech API
-        voice_input_html = """
-        <div id="voice-input-container">
-            <button id="start-recording" onclick="startRecording()" style="
-                background-color: #ff4b4b;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
-                margin: 10px;
-            ">🎤 Start Recording</button>
-            
-            <button id="stop-recording" onclick="stopRecording()" style="
-                background-color: #4caf50;
-                color: white;
-                border: none;
-                padding: 10px 20px;
-                border-radius: 5px;
-                cursor: pointer;
-                font-size: 16px;
-                margin: 10px;
-                display: none;
-            ">⏹️ Stop Recording</button>
-            
-            <div id="status" style="margin: 10px; font-weight: bold;"></div>
-            <div id="transcript" style="margin: 10px; padding: 10px; background-color: #f0f2f6; border-radius: 5px;"></div>
-        </div>
 
-        <script>
-        let recognition;
-        let isRecording = false;
+        if transcript_input and transcript_input.strip():
+            return transcript_input.strip()
 
-        function startRecording() {
-            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-                recognition = new SpeechRecognition();
-                
-                recognition.continuous = true;
-                recognition.interimResults = true;
-                recognition.lang = 'en-US';
-                
-                recognition.onstart = function() {
-                    isRecording = true;
-                    document.getElementById('start-recording').style.display = 'none';
-                    document.getElementById('stop-recording').style.display = 'inline-block';
-                    document.getElementById('status').textContent = '🎤 Listening...';
-                };
-                
-                recognition.onresult = function(event) {
-                    let transcript = '';
-                    for (let i = event.resultIndex; i < event.results.length; i++) {
-                        transcript += event.results[i][0].transcript;
-                    }
-                    document.getElementById('transcript').textContent = transcript;
-                };
-                
-                recognition.onerror = function(event) {
-                    document.getElementById('status').textContent = '❌ Error: ' + event.error;
-                    stopRecording();
-                };
-                
-                recognition.onend = function() {
-                    stopRecording();
-                };
-                
-                recognition.start();
-            } else {
-                document.getElementById('status').textContent = '❌ Speech recognition not supported in this browser';
-            }
-        }
-
-        function stopRecording() {
-            if (recognition && isRecording) {
-                recognition.stop();
-                isRecording = false;
-                document.getElementById('start-recording').style.display = 'inline-block';
-                document.getElementById('stop-recording').style.display = 'none';
-                document.getElementById('status').textContent = '✅ Recording stopped';
-                
-                // Send transcript to Streamlit
-                const transcript = document.getElementById('transcript').textContent;
-                if (transcript.trim()) {
-                    // Use Streamlit's session state to pass data
-                    parent.postMessage({
-                        type: 'streamlit:setComponentValue',
-                        value: transcript
-                    }, '*');
-                }
-            }
-        }
-        </script>
-        """
-        
-        st.components.v1.html(voice_input_html, height=200)
-        
-        # Check for transcript in session state
-        if 'voice_transcript' in st.session_state:
-            transcript = st.session_state.voice_transcript
-            if transcript:
-                st.success(f"🎤 Voice input received: {transcript}")
-                return transcript
-        
         return None
     
     def setup_websocket_server(self, port: int = 8765) -> None:

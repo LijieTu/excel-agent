@@ -261,12 +261,36 @@ result = df.sort_values({sort_cols}, ascending={str(intent.sort_ascending)})
     def _generate_group_by_code(self, intent: AnalysisIntent) -> str:
         """Generate code for group by analysis."""
         group_by = self._format_group_by(intent.group_by_columns)
-        target_col = intent.target_columns[0] if intent.target_columns else "value"
+        
+        # Determine target column - prefer numeric columns
+        if intent.target_columns:
+            target_col = intent.target_columns[0]
+        else:
+            target_col = "value"
         
         code = f"""
 # Group by analysis
-result = df.groupby({group_by})['{target_col}'].agg(['sum', 'mean', 'count']).reset_index()
-result = result.sort_values('sum', ascending={str(intent.sort_ascending)})
+# Find numeric columns for aggregation
+numeric_cols = df.select_dtypes(include=['number']).columns.tolist()
+
+# Check if target column exists and is numeric
+if '{target_col}' in df.columns:
+    if pd.api.types.is_numeric_dtype(df['{target_col}']):
+        result = df.groupby({group_by})['{target_col}'].agg(['sum', 'mean', 'count']).reset_index()
+        result = result.sort_values('sum', ascending={str(intent.sort_ascending)})
+    else:
+        # For non-numeric target, count occurrences
+        result = df.groupby({group_by})['{target_col}'].count().reset_index(name='count')
+        result = result.sort_values('count', ascending={str(intent.sort_ascending)})
+else:
+    # If target column not found, aggregate all numeric columns
+    if numeric_cols:
+        result = df.groupby({group_by})[numeric_cols].sum().reset_index()
+        result = result.sort_values(numeric_cols[0], ascending={str(intent.sort_ascending)})
+    else:
+        # No numeric columns, just count
+        result = df.groupby({group_by}).size().reset_index(name='count')
+        result = result.sort_values('count', ascending={str(intent.sort_ascending)})
 """
         return code
     

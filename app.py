@@ -70,11 +70,96 @@ st.markdown("""
         margin: 1rem 0;
     }
     .info-box {
-        background-color: #d1ecf1;
-        border: 1px solid #bee5eb;
+        background-color: #e7f3ff;
+        border: 2px solid #1f77b4;
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+        color: #1a365d;
+        font-weight: 500;
+    }
+    
+    .info-box strong {
+        color: #1a365d;
+        font-weight: 700;
+        font-size: 1.1rem;
+    }
+    
+    /* Welcome section styling */
+    .welcome-box {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 12px;
+        padding: 2rem;
+        margin: 1rem 0;
+        color: white;
+        text-align: center;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+    
+    .welcome-box strong {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #ffffff;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    .welcome-box p {
+        color: #f8f9fa;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin: 0.5rem 0;
+    }
+    
+    /* Success box styling */
+    .success-box {
+        background-color: #d4edda;
+        border: 1px solid #c3e6cb;
         border-radius: 0.375rem;
         padding: 1rem;
         margin: 1rem 0;
+        color: #155724;
+    }
+    
+    .success-box strong {
+        color: #155724;
+        font-weight: 600;
+    }
+    
+    .success-box em {
+        color: #495057;
+        font-style: italic;
+    }
+    
+    /* Style for example query buttons */
+    .stButton > button {
+        width: 100%;
+        height: auto;
+        min-height: 60px;
+        padding: 12px 16px;
+        text-align: left;
+        white-space: normal;
+        word-wrap: break-word;
+        font-size: 14px;
+        line-height: 1.4;
+        border-radius: 8px;
+        border: 2px solid #e1e5e9;
+        background-color: #f8f9fa;
+        color: #495057;
+        transition: all 0.2s ease;
+    }
+    
+    .stButton > button:hover {
+        background-color: #e9ecef;
+        border-color: #1f77b4;
+        color: #1f77b4;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .stButton > button:active {
+        transform: translateY(0);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
     }
 </style>
 """, unsafe_allow_html=True)
@@ -103,11 +188,11 @@ def main():
     # Header
     st.markdown('<h1 class="main-header">📊 Intelligent Excel Agent</h1>', unsafe_allow_html=True)
     st.markdown("""
-    <div class="info-box">
-        <strong>Welcome to the Intelligent Excel Agent!</strong><br>
-        This system can understand natural language queries and automatically perform data analysis on Excel files.
+    <div class="welcome-box">
+        <strong>Welcome to the Intelligent Excel Agent!</strong>
+        <p>This system can understand natural language queries and automatically perform data analysis on Excel files.
         You can ask questions like "Help me analyze sales trends across regions" and the system will generate
-        the appropriate Python code and visualizations.
+        the appropriate Python code and visualizations.</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -192,32 +277,138 @@ def voice_input_tab():
     """Voice input tab functionality."""
     st.markdown('<h2 class="section-header">🎤 Voice Input</h2>', unsafe_allow_html=True)
     
-    # Voice input interface
-    transcript = st.session_state.voice_handler.create_voice_input_ui()
+    # Instructions
+    st.markdown("""
+    <div class="info-box">
+        <strong>🎤 How to use Voice Input:</strong><br><br>
+        1. Click "Start Recording" button below<br>
+        2. Speak your query clearly into your microphone<br>
+        3. Click "Stop Recording" when finished<br>
+        4. Copy your transcript from the box below<br>
+        5. Go to the "💬 Text Query" tab<br>
+        6. Paste your transcript and click "🔍 Analyze Query"
+    </div>
+    """, unsafe_allow_html=True)
     
-    if transcript:
-        st.session_state.voice_transcript = transcript
-        st.markdown(f"""
-        <div class="success-box">
-            <strong>Voice Input Received:</strong><br>
-            "{transcript}"
-        </div>
-        """, unsafe_allow_html=True)
-        
-        # Process the voice input
-        if st.button("🔍 Analyze Voice Input"):
-            process_query(transcript, "voice")
+    st.info("💡 **Tip:** Works best in Chrome or Edge browsers with microphone permissions enabled.")
+    
+    # Simple voice recording interface (lightweight)
+    st.write("**🎤 Voice Recording**")
+
+    # Simple HTML for voice recording
+    voice_recording_html = """
+    <div style="text-align: center; padding: 20px;">
+        <button id="start-recording" onclick="startRecording()" style="
+            background-color: #ff4b4b;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 10px;
+            font-weight: bold;
+        ">🎤 Start Recording</button>
+
+        <button id="stop-recording" onclick="stopRecording()" style="
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 18px;
+            margin: 10px;
+            font-weight: bold;
+            display: none;
+        ">⏹️ Stop Recording</button>
+
+        <div id="status" style="margin: 20px; font-weight: bold; font-size: 16px; color: #333;"></div>
+        <div id="transcript" style="margin: 20px; padding: 15px; background-color: #f0f2f6; border-radius: 8px; min-height: 50px; border: 2px solid #e1e5e9;"></div>
+    </div>
+
+    <script>
+    let recognition;
+    let isRecording = false;
+    let finalTranscript = '';
+
+    function startRecording() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRecognition();
+
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'en-US';
+
+            recognition.onstart = function() {
+                isRecording = true;
+                document.getElementById('status').textContent = '🎤 Recording... Speak now!';
+                document.getElementById('status').style.color = '#ff4b4b';
+                document.getElementById('start-recording').style.display = 'none';
+                document.getElementById('stop-recording').style.display = 'inline-block';
+                document.getElementById('transcript').innerHTML = '';
+                finalTranscript = '';
+            };
+
+            recognition.onresult = function(event) {
+                let interimTranscript = '';
+
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    const transcript = event.results[i][0].transcript;
+                    if (event.results[i].isFinal) {
+                        finalTranscript += transcript + ' ';
+                    } else {
+                        interimTranscript += transcript;
+                    }
+                }
+
+                document.getElementById('transcript').innerHTML =
+                    '<strong>Final:</strong> ' + finalTranscript + '<br>' +
+                    '<em>Interim:</em> ' + interimTranscript;
+            };
+
+            recognition.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                document.getElementById('status').textContent = '❌ Error: ' + event.error;
+                document.getElementById('status').style.color = '#ff4b4b';
+                stopRecording();
+            };
+
+            recognition.onend = function() {
+                isRecording = false;
+                document.getElementById('status').innerHTML = '✅ <strong>Recording complete!</strong><br>📋 <em>Next steps: 1) Copy your transcript → 2) Go to "💬 Text Query" tab → 3) Paste and click "Analyze Query"</em>';
+                document.getElementById('status').style.color = '#4caf50';
+                document.getElementById('start-recording').style.display = 'inline-block';
+                document.getElementById('stop-recording').style.display = 'none';
+
+                // Keep transcript displayed in the box (no localStorage, so it won't persist on refresh)
+                if (finalTranscript.trim()) {
+                    // Update the display to show the final transcript only
+                    document.getElementById('transcript').innerHTML = '<strong>Your Transcript:</strong><br>' + finalTranscript.trim();
+                }
+            };
+
+            recognition.start();
+        } else {
+            document.getElementById('status').textContent = '❌ Speech recognition not supported. Please use Chrome or Edge.';
+            document.getElementById('status').style.color = '#ff4b4b';
+        }
+    }
+
+    function stopRecording() {
+        if (recognition && isRecording) {
+            recognition.stop();
+        }
+    }
+    </script>
+    """
+
+    st.components.v1.html(voice_recording_html, height=300)
 
 def text_query_tab():
     """Text query tab functionality."""
     st.markdown('<h2 class="section-header">💬 Text Query</h2>', unsafe_allow_html=True)
-    
-    # Text input
-    query = st.text_area(
-        "Enter your analysis query:",
-        placeholder="e.g., Help me analyze sales trends across regions",
-        height=100
-    )
     
     # Example queries
     st.markdown("### 💡 Example Queries")
@@ -229,23 +420,29 @@ def text_query_tab():
         "Show me the correlation between salary and experience"
     ]
     
-    cols = st.columns(len(example_queries))
+    # Display example queries in a more user-friendly way
+    st.markdown("**Click any example below to use it:**")
+    
+    # Create 2 columns for better layout
+    cols = st.columns(2)
     for i, example in enumerate(example_queries):
-        with cols[i]:
-            if st.button(f"📝 {example[:30]}...", key=f"example_{i}"):
-                st.session_state.example_query = example
+        col_idx = i % 2
+        with cols[col_idx]:
+            # Create a larger, more descriptive button
+            button_text = f"📝 {example}"
+            if st.button(button_text, key=f"example_{i}", help=f"Click to use: {example}"):
+                st.session_state.query_input = example
                 st.rerun()
     
-    # Use example query if selected
-    if 'example_query' in st.session_state:
-        query = st.session_state.example_query
-        st.text_area("Enter your analysis query:", value=query, height=100, key="query_input")
-        del st.session_state.example_query
+    # Text input area
+    query = st.text_area("Enter your analysis query:", height=100, key="query_input")
     
     # Process query button
     if st.button("🔍 Analyze Query", type="primary"):
-        if query.strip():
-            process_query(query, "text")
+        # Get the current query from the text area
+        current_query = st.session_state.get("query_input", "")
+        if current_query.strip():
+            process_query(current_query, "text")
         else:
             st.warning("Please enter a query to analyze.")
 
