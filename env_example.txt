@@ -1,0 +1,21 @@
+# Environment variables for the Excel Agent
+# Copy this file to .env and fill in your actual values
+
+# OpenAI API Configuration
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-4
+
+# Application Configuration
+DEBUG=True
+MAX_FILE_SIZE_MB=50
+SUPPORTED_FILE_TYPES=xlsx,xls,csv
+
+# Voice Input Configuration
+ENABLE_VOICE_INPUT=True
+WHISPER_MODEL=whisper-1
+
+# Data Processing Configuration
+MAX_ROWS_PREVIEW=1000
+DEFAULT_CHART_TYPE=line
+
+
